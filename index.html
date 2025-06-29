@@ -3,136 +3,60 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Chat App</title>
+  <title>Simple Chat</title>
   <style>
-    body {
-      font-family: sans-serif;
-      margin: 0;
-      padding: 0;
-      background: #f0f0f0;
-    }
-
-    #chat {
-      max-width: 600px;
-      margin: 40px auto;
-      background: white;
-      padding: 20px;
-      border-radius: 10px;
-      height: 80vh;
-      display: flex;
-      flex-direction: column;
-    }
-
-    #messages {
-      flex: 1;
-      overflow-y: auto;
-      padding-right: 10px;
-    }
-
-    .bubble {
-      max-width: 70%;
-      padding: 10px 14px;
-      margin: 8px 0;
-      border-radius: 16px;
-      clear: both;
-    }
-
-    .left {
-      background: #e0e0e0;
-      align-self: flex-start;
-      border-bottom-left-radius: 0;
-    }
-
-    .right {
-      background: #4caf50;
-      color: white;
-      align-self: flex-end;
-      border-bottom-right-radius: 0;
-    }
-
-    form {
-      display: flex;
-      margin-top: 10px;
-    }
-
-    input {
-      flex: 1;
-      padding: 10px;
-      font-size: 1rem;
-    }
-
-    button {
-      padding: 10px 20px;
-      font-size: 1rem;
-      background: #4caf50;
-      color: white;
-      border: none;
-      cursor: pointer;
-    }
-
-    button:hover {
-      background: #45a049;
-    }
+    body { font-family: sans-serif; max-width: 600px; margin: 40px auto; }
+    .chat-container { display: flex; flex-direction: column-reverse; gap: 8px; margin-bottom: 20px; }
+    .bubble { max-width: 80%; padding: 10px 14px; border-radius: 16px; }
+    .me { align-self: flex-end; background-color: #DCF8C6; }
+    .other { align-self: flex-start; background-color: #F1F0F0; }
   </style>
 </head>
 <body>
-  <div id="chat">
-    <div id="messages"></div>
-    <form id="chat-form">
-      <input type="text" id="input" placeholder="Ketik pesan..." autocomplete="off" />
-      <button type="submit">Kirim</button>
-    </form>
-  </div>
+  <h1>Simple Chat</h1>
+  <div id="chat" class="chat-container"></div>
+  <form id="chat-form">
+    <input id="message" type="text" placeholder="Type your message..." required autofocus />
+    <button type="submit">Send</button>
+  </form>
 
   <script>
-    const chatContainer = document.getElementById('messages');
-    const form = document.getElementById('chat-form');
-    const input = document.getElementById('input');
-
-    function addMessageBubble(text, sender = 'user') {
-      const bubble = document.createElement('div');
-      bubble.className = `bubble ${sender === 'user' ? 'right' : 'left'}`;
-      bubble.textContent = text;
-      chatContainer.appendChild(bubble);
-      chatContainer.scrollTop = chatContainer.scrollHeight;
-    }
-
     async function loadMessages() {
-      const res = await fetch('/api/messages');
-      const data = await res.json();
-      chatContainer.innerHTML = '';
+      const res = await fetch('/api/messages')
+      const data = await res.json()
+      const chat = document.getElementById('chat')
+      chat.innerHTML = ''
       data.messages.forEach(msg => {
-        addMessageBubble(msg.content, msg.sender || 'user');
-      });
+        const bubble = document.createElement('div')
+        bubble.className = 'bubble other'
+        bubble.textContent = msg.content
+        chat.appendChild(bubble)
+      })
     }
 
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const message = input.value.trim();
-      if (!message) return;
+    document.getElementById('chat-form').addEventListener('submit', async (e) => {
+      e.preventDefault()
+      const input = document.getElementById('message')
+      const content = input.value.trim()
+      if (!content) return
 
-      addMessageBubble(message, 'user'); // langsung tampil
-      input.value = '';
+      // Tampilkan bubble langsung
+      const chat = document.getElementById('chat')
+      const bubble = document.createElement('div')
+      bubble.className = 'bubble me'
+      bubble.textContent = content
+      chat.prepend(bubble)
 
       await fetch('/api/messages', {
         method: 'POST',
-        body: JSON.stringify({ content: message }),
-        headers: { 'Content-Type': 'application/json' }
-      });
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content })
+      })
 
-      // Optionally reload from server:
-      // await loadMessages();
-    });
+      input.value = ''
+    })
 
-    // ENTER key support
-    input.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        form.dispatchEvent(new Event('submit'));
-      }
-    });
-
-    loadMessages();
+    loadMessages()
   </script>
 </body>
 </html>
