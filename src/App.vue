@@ -1,85 +1,90 @@
-<script setup>
-import { RouterLink, RouterView } from 'vue-router'
-import HelloWorld from './components/HelloWorld.vue'
-</script>
-
 <template>
-  <header>
-    <img alt="Vue logo" class="logo" src="@/assets/logo.svg" width="125" height="125" />
-
-    <div class="wrapper">
-      <HelloWorld msg="You did it!" />
-
-      <nav>
-        <RouterLink to="/">Home</RouterLink>
-        <RouterLink to="/about">About</RouterLink>
-      </nav>
+  <div class="chat-container">
+    <div class="chat-box">
+      <div
+        v-for="msg in messages"
+        :key="msg.id"
+        class="bubble"
+      >
+        {{ msg.content }}
+      </div>
     </div>
-  </header>
 
-  <RouterView />
+    <div class="input-area">
+      <input
+        v-model="input"
+        @keyup.enter="sendMessage"
+        placeholder="Tulis pesan..."
+      />
+      <button @click="sendMessage">Kirim</button>
+    </div>
+  </div>
 </template>
 
+<script setup>
+import { ref, onMounted } from 'vue'
+
+const input = ref('')
+const messages = ref([])
+
+const fetchMessages = async () => {
+  const res = await fetch('/api/messages')
+  const data = await res.json()
+  messages.value = data.messages.reverse()
+}
+
+const sendMessage = async () => {
+  if (!input.value.trim()) return
+  await fetch('/api/messages', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ content: input.value }),
+  })
+  input.value = ''
+  await fetchMessages()
+}
+
+onMounted(fetchMessages)
+</script>
+
 <style scoped>
-header {
-  line-height: 1.5;
-  max-height: 100vh;
+.chat-container {
+  display: flex;
+  flex-direction: column;
+  max-width: 400px;
+  margin: auto;
+  padding: 1rem;
 }
 
-.logo {
-  display: block;
-  margin: 0 auto 2rem;
+.chat-box {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  max-height: 400px;
+  overflow-y: auto;
 }
 
-nav {
-  width: 100%;
-  font-size: 12px;
-  text-align: center;
-  margin-top: 2rem;
+.bubble {
+  background-color: #d1e7dd;
+  padding: 10px 15px;
+  border-radius: 15px;
+  align-self: flex-start;
+  max-width: 80%;
+  word-break: break-word;
 }
 
-nav a.router-link-exact-active {
-  color: var(--color-text);
+.input-area {
+  display: flex;
+  gap: 0.5rem;
 }
 
-nav a.router-link-exact-active:hover {
-  background-color: transparent;
+input {
+  flex: 1;
+  padding: 0.5rem;
 }
 
-nav a {
-  display: inline-block;
-  padding: 0 1rem;
-  border-left: 1px solid var(--color-border);
-}
-
-nav a:first-of-type {
-  border: 0;
-}
-
-@media (min-width: 1024px) {
-  header {
-    display: flex;
-    place-items: center;
-    padding-right: calc(var(--section-gap) / 2);
-  }
-
-  .logo {
-    margin: 0 2rem 0 0;
-  }
-
-  header .wrapper {
-    display: flex;
-    place-items: flex-start;
-    flex-wrap: wrap;
-  }
-
-  nav {
-    text-align: left;
-    margin-left: -1rem;
-    font-size: 1rem;
-
-    padding: 1rem 0;
-    margin-top: 1rem;
-  }
+button {
+  padding: 0.5rem 1rem;
 }
 </style>
