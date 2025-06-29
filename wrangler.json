@@ -1,0 +1,12 @@
+{
+  "name": "cf-vue",
+  "compatibility_date": "2024-12-30",
+  "main": "./api/index.ts",
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "cf-vue",
+      "database_id": "1f4b7e19-xxxx-yyyy-zzzz-abcdefghijk" 
+    }
+  ]
+}
