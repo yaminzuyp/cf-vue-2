@@ -1,7 +1,10 @@
 -- Migration number: 0001 	 2025-06-29T13:29:04.728Z
-CREATE TABLE messages (
+CREATE TABLE IF NOT EXISTS messages (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  content TEXT
+  content TEXT NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+
 
 
