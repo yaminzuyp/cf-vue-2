@@ -1,7 +1,7 @@
 {
   "name": "cf-vue",
   "compatibility_date": "2024-12-30",
-  "main": "./api/index.ts",
+  "main": "./api/index.js",
   "d1_databases": [
     {
       "binding": "DB",
