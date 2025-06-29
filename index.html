@@ -2,54 +2,137 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Simple Chat</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Chat App</title>
   <style>
-    body { font-family: sans-serif; max-width: 500px; margin: 20px auto; }
-    .chat-box { border: 1px solid #ccc; padding: 10px; height: 300px; overflow-y: auto; display: flex; flex-direction: column-reverse; }
-    .bubble { background: #dcf8c6; padding: 8px 12px; border-radius: 15px; margin: 5px 0; max-width: 80%; align-self: flex-end; }
-    form { display: flex; gap: 10px; margin-top: 10px; }
-    input[type="text"] { flex: 1; padding: 5px; }
-    button { padding: 6px 12px; }
+    body {
+      font-family: sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f0f0f0;
+    }
+
+    #chat {
+      max-width: 600px;
+      margin: 40px auto;
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      height: 80vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    #messages {
+      flex: 1;
+      overflow-y: auto;
+      padding-right: 10px;
+    }
+
+    .bubble {
+      max-width: 70%;
+      padding: 10px 14px;
+      margin: 8px 0;
+      border-radius: 16px;
+      clear: both;
+    }
+
+    .left {
+      background: #e0e0e0;
+      align-self: flex-start;
+      border-bottom-left-radius: 0;
+    }
+
+    .right {
+      background: #4caf50;
+      color: white;
+      align-self: flex-end;
+      border-bottom-right-radius: 0;
+    }
+
+    form {
+      display: flex;
+      margin-top: 10px;
+    }
+
+    input {
+      flex: 1;
+      padding: 10px;
+      font-size: 1rem;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 1rem;
+      background: #4caf50;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #45a049;
+    }
   </style>
 </head>
 <body>
-  <h2>Simple Chat</h2>
-  <div class="chat-box" id="chatBox"></div>
-  <form id="chatForm">
-    <input type="text" id="messageInput" placeholder="Type your message..." required />
-    <button type="submit">Send</button>
-  </form>
+  <div id="chat">
+    <div id="messages"></div>
+    <form id="chat-form">
+      <input type="text" id="input" placeholder="Ketik pesan..." autocomplete="off" />
+      <button type="submit">Kirim</button>
+    </form>
+  </div>
 
   <script>
-    const form = document.getElementById('chatForm')
-    const input = document.getElementById('messageInput')
-    const chatBox = document.getElementById('chatBox')
+    const chatContainer = document.getElementById('messages');
+    const form = document.getElementById('chat-form');
+    const input = document.getElementById('input');
+
+    function addMessageBubble(text, sender = 'user') {
+      const bubble = document.createElement('div');
+      bubble.className = `bubble ${sender === 'user' ? 'right' : 'left'}`;
+      bubble.textContent = text;
+      chatContainer.appendChild(bubble);
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
 
     async function loadMessages() {
-      const res = await fetch('/api/messages')
-      const data = await res.json()
-      chatBox.innerHTML = ''
-      data.messages.reverse().forEach(msg => {
-        const div = document.createElement('div')
-        div.className = 'bubble'
-        div.textContent = msg.content
-        chatBox.appendChild(div)
-      })
+      const res = await fetch('/api/messages');
+      const data = await res.json();
+      chatContainer.innerHTML = '';
+      data.messages.forEach(msg => {
+        addMessageBubble(msg.content, msg.sender || 'user');
+      });
     }
 
     form.addEventListener('submit', async (e) => {
-      e.preventDefault()
-      const content = input.value
+      e.preventDefault();
+      const message = input.value.trim();
+      if (!message) return;
+
+      addMessageBubble(message, 'user'); // langsung tampil
+      input.value = '';
+
       await fetch('/api/messages', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content })
-      })
-      input.value = ''
-      loadMessages()
-    })
+        body: JSON.stringify({ content: message }),
+        headers: { 'Content-Type': 'application/json' }
+      });
 
-    loadMessages()
+      // Optionally reload from server:
+      // await loadMessages();
+    });
+
+    // ENTER key support
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        form.dispatchEvent(new Event('submit'));
+      }
+    });
+
+    loadMessages();
   </script>
 </body>
 </html>
