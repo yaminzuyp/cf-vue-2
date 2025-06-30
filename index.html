@@ -2,61 +2,10 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Simple Chat</title>
-  <style>
-    body { font-family: sans-serif; max-width: 600px; margin: 40px auto; }
-    .chat-container { display: flex; flex-direction: column-reverse; gap: 8px; margin-bottom: 20px; }
-    .bubble { max-width: 80%; padding: 10px 14px; border-radius: 16px; }
-    .me { align-self: flex-end; background-color: #DCF8C6; }
-    .other { align-self: flex-start; background-color: #F1F0F0; }
-  </style>
+  <title>Vue Chat</title>
 </head>
 <body>
-  <h1>Simple Chat</h1>
-  <div id="chat" class="chat-container"></div>
-  <form id="chat-form">
-    <input id="message" type="text" placeholder="Type your message..." required autofocus />
-    <button type="submit">Send</button>
-  </form>
-
-  <script>
-    async function loadMessages() {
-      const res = await fetch('/api/messages')
-      const data = await res.json()
-      const chat = document.getElementById('chat')
-      chat.innerHTML = ''
-      data.messages.forEach(msg => {
-        const bubble = document.createElement('div')
-        bubble.className = 'bubble other'
-        bubble.textContent = msg.content
-        chat.appendChild(bubble)
-      })
-    }
-
-    document.getElementById('chat-form').addEventListener('submit', async (e) => {
-      e.preventDefault()
-      const input = document.getElementById('message')
-      const content = input.value.trim()
-      if (!content) return
-
-      // Tampilkan bubble langsung
-      const chat = document.getElementById('chat')
-      const bubble = document.createElement('div')
-      bubble.className = 'bubble me'
-      bubble.textContent = content
-      chat.prepend(bubble)
-
-      await fetch('/api/messages', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content })
-      })
-
-      input.value = ''
-    })
-
-    loadMessages()
-  </script>
+  <div id="app"></div>
+  <script type="module" src="/src/main.js"></script>
 </body>
 </html>
