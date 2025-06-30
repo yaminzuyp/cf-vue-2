@@ -1,10 +1,14 @@
-
 {
   "name": "cf-vue-2",
   "main": "api/index.js",
   "compatibility_date": "2024-12-30",
 
-  // Static assets config
+  // Tambahkan ini agar otomatis build Vue
+  "build": {
+    "command": "npm run build"
+  },
+
+  // Static assets config (untuk SPA Vue)
   "assets": {
     "binding": "ASSETS",
     "directory": "./dist",
