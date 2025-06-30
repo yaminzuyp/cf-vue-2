@@ -1,5 +1,5 @@
 <template>
-  <main>
+  <div>
     <h1>Simple Chat</h1>
     <div class="chat-container">
       <div v-for="msg in messages" :key="msg.id" class="bubble other">
@@ -7,10 +7,11 @@
       </div>
     </div>
     <form @submit.prevent="sendMessage">
-      <input v-model="input" type="text" placeholder="Type your message..." required />
+      <input v-model="input" placeholder="Type your message..." required />
       <button type="submit">Send</button>
+      <button type="button" @click="deleteAll">Delete All</button>
     </form>
-  </main>
+  </div>
 </template>
 
 <script setup>
@@ -19,40 +20,50 @@ import { ref, onMounted } from 'vue'
 const messages = ref([])
 const input = ref('')
 
-async function loadMessages() {
+const loadMessages = async () => {
   const res = await fetch('/api/messages')
   const data = await res.json()
   messages.value = data.messages
 }
 
-async function sendMessage() {
-  const content = input.value.trim()
-  if (!content) return
-  messages.value.unshift({ content })
-  input.value = ''
+const sendMessage = async () => {
+  if (!input.value.trim()) return
   await fetch('/api/messages', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ content })
+    body: JSON.stringify({ content: input.value })
   })
+  input.value = ''
+  loadMessages()
 }
 
-onMounted(() => {
-  loadMessages()
-})
+const deleteAll = async () => {
+  await fetch('/api/messages', {
+    method: 'DELETE'
+  })
+  messages.value = []
+}
+
+onMounted(loadMessages)
 </script>
 
-<style scoped>
+<style>
+body {
+  font-family: sans-serif;
+  max-width: 600px;
+  margin: 40px auto;
+}
 .chat-container {
   display: flex;
   flex-direction: column-reverse;
   gap: 8px;
-  margin: 1rem 0;
+  margin-bottom: 20px;
 }
 .bubble {
-  padding: 10px;
+  max-width: 80%;
+  padding: 10px 14px;
   border-radius: 16px;
-  background: #f0f0f0;
+  background-color: #f1f0f0;
 }
 </style>
 
