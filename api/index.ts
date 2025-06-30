@@ -9,8 +9,16 @@ app.get('/api/messages', async (c) => {
 })
 
 app.post('/api/messages', async (c) => {
+  const db = c.env.DB
   const { content } = await c.req.json()
-  await c.env.DB.prepare(`INSERT INTO messages (content) VALUES (?)`).bind(content).run()
+  await db.prepare(`INSERT INTO messages (content) VALUES (?)`).bind(content).run()
+  return c.json({ success: true })
+})
+
+app.delete('/api/messages/:id', async (c) => {
+  const db = c.env.DB
+  const id = c.req.param('id')
+  await db.prepare(`DELETE FROM messages WHERE id = ?`).bind(id).run()
   return c.json({ success: true })
 })
 
