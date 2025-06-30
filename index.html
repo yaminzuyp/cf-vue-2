@@ -1,95 +1,68 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Simple Chat</title>
-  <style>
-    body {
-      font-family: sans-serif;
-      max-width: 600px;
-      margin: 40px auto;
-    }
-    .chat-container {
-      display: flex;
-      flex-direction: column-reverse;
-      gap: 8px;
-      margin-bottom: 20px;
-    }
-    .bubble {
-      max-width: 80%;
-      padding: 10px 14px;
-      border-radius: 16px;
-      position: relative;
-    }
-    .me {
-      align-self: flex-end;
-      background-color: #DCF8C6;
-    }
-    .other {
-      align-self: flex-start;
-      background-color: #F1F0F0;
-    }
-    .delete-btn {
-      background: none;
-      border: none;
-      font-size: 16px;
-      color: red;
-      position: absolute;
-      top: 4px;
-      right: 8px;
-      cursor: pointer;
-    }
-  </style>
-</head>
-<body>
-  <h1>Simple Chat</h1>
-  <div id="chat" class="chat-container"></div>
-  <form id="chat-form">
-    <input id="message" type="text" placeholder="Type your message..." required autofocus />
-    <button type="submit">Send</button>
-  </form>
+<template>
+  <div>
+    <h1>Simple Chat</h1>
+    <div class="chat-container">
+      <div v-for="msg in messages" :key="msg.id" class="bubble other">
+        {{ msg.content }}
+      </div>
+    </div>
+    <form @submit.prevent="sendMessage">
+      <input v-model="input" placeholder="Type your message..." required />
+      <button type="submit">Send</button>
+      <button type="button" @click="deleteAll">Delete All</button>
+    </form>
+  </div>
+</template>
 
-  <script>
-    async function loadMessages() {
-      const res = await fetch('/api/messages')
-      const data = await res.json()
-      const chat = document.getElementById('chat')
-      chat.innerHTML = ''
-      data.messages.forEach(msg => {
-        const bubble = document.createElement('div')
-        bubble.className = 'bubble other'
-        bubble.textContent = msg.content
+<script setup>
+import { ref, onMounted } from 'vue'
 
-        // Tombol delete
-        const del = document.createElement('button')
-        del.textContent = '❌'
-        del.className = 'delete-btn'
-        del.onclick = async (e) => {
-          e.stopPropagation()
-          await fetch(`/api/messages/${msg.id}`, { method: 'DELETE' })
-          loadMessages()
-        }
+const messages = ref([])
+const input = ref('')
 
-        bubble.appendChild(del)
-        chat.appendChild(bubble)
-      })
-    }
+const loadMessages = async () => {
+  const res = await fetch('/api/messages')
+  const data = await res.json()
+  messages.value = data.messages
+}
 
-    document.getElementById('chat-form').addEventListener('submit', async (e) => {
-      e.preventDefault()
-      const input = document.getElementById('message')
-      const content = input.value.trim()
-      if (!content) return
+const sendMessage = async () => {
+  if (!input.value.trim()) return
+  await fetch('/api/messages', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ content: input.value })
+  })
+  input.value = ''
+  loadMessages()
+}
 
-      // Tampilkan langsung
-      const chat = document.getElementById('chat')
-      const bubble = document.createElement('div')
-      bubble.className = 'bubb'
-    })
-    loadMessages()
-  </script>
-</body>
-</html>
+const deleteAll = async () => {
+  await fetch('/api/messages', {
+    method: 'DELETE'
+  })
+  messages.value = []
+}
 
+onMounted(loadMessages)
+</script>
 
+<style>
+body {
+  font-family: sans-serif;
+  max-width: 600px;
+  margin: 40px auto;
+}
+.chat-container {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+.bubble {
+  max-width: 80%;
+  padding: 10px 14px;
+  border-radius: 16px;
+  background-color: #f1f0f0;
+}
+</style>
